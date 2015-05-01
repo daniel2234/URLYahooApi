@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController<UITextFieldDelegate>
 
 //UITextField
 @property (strong, nonatomic) UITextField *textField;
@@ -24,5 +24,7 @@
 //UIImageView
 @property(strong,nonatomic)UIImageView *chartImageView;
 
+//getQuote method
+-(void)getQuote;
 @end
 

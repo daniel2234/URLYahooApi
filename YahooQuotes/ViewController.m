@@ -10,13 +10,16 @@
     [super viewDidLoad];
     //create the textfield
     self.textField = [[UITextField alloc]initWithFrame:CGRectMake(20, 60, 280, 20)];
+    self.textField.autocorrectionType = UITextAutocorrectionTypeNo;
     self.textField.text = @"";
     self.textField.placeholder = @"Input Ticker Symbol";
+    self.textField.returnKeyType = UIReturnKeyDone;
+    self.textField.delegate =self;
     [self.view addSubview:_textField];
     //create textfield for monthly charts
     self.timeChartField = [[UITextField alloc]initWithFrame:CGRectMake(20, 100, 280, 20)];
     self.timeChartField.text = @"";
-    self.timeChartField.placeholder = @"Input Months ";
+    self.timeChartField.placeholder = @"Input Month(s) ";
     [self.view addSubview:_timeChartField];
 
     self.priceLabel = [[UILabel alloc]initWithFrame:CGRectMake(20, 120, 280, 40)];
@@ -58,18 +61,35 @@
     UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:chartURL]]];
     self.chartImageView.image = image;
 }
+-(BOOL)textFieldShouldReturn:(UITextField *)textField
+{
+    [self.textField resignFirstResponder];
+    [self getQuote];
+    return YES;
+}
+
 
 -(void)getQuote {
-    [self getChart];
+    [self getChart];//called with the selector
     //http://download.finance.yahoo.com/d/quotes.csv?s=%@&f=sl1d1t1c1ohgv&e=.csv
     NSString *quoteAddress = [NSString stringWithFormat:@"http://download.finance.yahoo.com/d/quotes.csv?s=%@&f=sl1d1t1c1ohgv&e=.csv",_textField.text];
-    NSURL *theURL = [[NSURL alloc]initWithString:[quoteAddress stringByAddingPercentEscapesUsingEncoding:NSASCIIStringEncoding]];//create th url with string
+    //create a url and format the url
+    NSURL *theURL = [[NSURL alloc]initWithString:[quoteAddress stringByAddingPercentEscapesUsingEncoding:NSASCIIStringEncoding]];
     NSURLRequest *theRequest = [[NSURLRequest alloc]initWithURL:theURL];// create a request to the server
     NSURLResponse *response = nil;
     NSError *error = nil;
     NSData *data = [NSURLConnection sendSynchronousRequest:theRequest returningResponse:&response error:&error];//createing a data object 
     NSMutableString *contentString = [[NSMutableString alloc]initWithData:data encoding:NSUTF8StringEncoding];
     NSArray *arrayData = [contentString componentsSeparatedByString:@","];
+    float current = [[arrayData objectAtIndex:1]floatValue];
+    float open = [[arrayData objectAtIndex:5]floatValue];
+    
+    if (current >= open) {
+        _priceLabel.textColor = [UIColor greenColor];
+    } else {
+        _priceLabel.textColor = [UIColor redColor];
+    }
+    
     _priceLabel.text = [arrayData objectAtIndex:1];
     _dateLabel.text = [arrayData objectAtIndex:2];
     _timeLabel.text = [arrayData objectAtIndex:3];
